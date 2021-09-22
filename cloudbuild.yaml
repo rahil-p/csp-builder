@@ -1,0 +1,17 @@
+# In this directory, run the following command to build this builder.
+# $ gcloud builds submit .
+
+steps:
+  - name: docker
+    args:
+      - build
+      - --tag=gcr.io/$PROJECT_ID/csp-builder
+      - .
+  - name: gcr.io/$PROJECT_ID/csp-builder
+    args:
+      - --version
+
+images:
+  - gcr.io/$PROJECT_ID/csp-builder
+tags:
+  - builder
