@@ -2,26 +2,56 @@
 
 [![docker-image][docker-image-badge]][docker-image]
 
-A simple Docker executable for parsing Content Security Policies from YAML configuration files, including support 
-for environment variables.
+A simple Docker executable for parsing Content Security Policies from YAML configuration files, including support for 
+environment variables.
 
 ## Motivation
 
-Content Security Policy is represented by a linefeed <a href='#fn-1'><sup id='fnr-1'>(1)</sup></a>, which 
-can be inconvenient to maintain.
+Content Security Policy is represented by a linefeed <a href='#fn-1'><sup id='fnr-1'>(1)</sup></a>, which can become
+inconvenient to maintain. This is especially the case when several backing services require access from varying deployment environments.
 
-An example:
+This Docker image provides support for configuring Content Security Policy in YAML.
 
+For example, instead of maintaining CSP in this kind of format:
 ```
-default-src 'none';frame-ancestors 'self';frame-src https://app.my-site.com https://bid.g.doubleclick.net;connect-src https://api.my-site.com wss://chat.my-site.com;script-src 'report-sample' 'self' https://tagmanager.google.com https://ssl.google-analytics.com https://www.google-analytics.com;img-src https://www.google.com https://ssl.gstatic.com https://www.gstatic.com;style-src https://tagmanager.google.com https://fonts.googleapis.com;font-src data: https://fonts.gstatic.com;manifest-src 'self';worker-src 'self';base-uri 'self';form-action 'none';report-to https://o0.ingest.sentry.io/api/0/security/?sentry_key=someKey
+default-src 'none';frame-ancestors 'self';frame-src https://app.third-party.com:8080;connect-src https://qa-api.my-site.com wss://qa-chat.my-site.com:*;script-src 'self' 'report-sample';style-src 'self' https://fonts.googleapis.com;font-src data: https://fonts.gstatic.com;report-to https://o0.ingest.sentry.io/api/0/security/?sentry_key=examplekey
 ```
 
-This Docker image provides support for configuring Content Security Policy in YAML ([example](#examples)). It can be 
-used in multi-stage builds or CI pipelines to insert policies in server configurations. Furthermore, it
-supports environment variables to allow configuration for different deployment environments.
+...it can be managed with more structure and readability in YAML like:
+```yaml
+Content-Security-Policy:
+  default-src:
+    - 'none'
+  frame-ancestors:
+    - 'self'
+  frame-src:
+    - https://${WEBAPP_DOMAIN}:8080
+  connect-src:
+    - https://${API_SUBDOMAIN}.my-site.com
+    - wss://${CHAT_SUBDOMAIN}.my-site.com:*
+  script-src:
+    - "'self'"
+    - "'report-sample'"
+  style-src:
+    - "'self'"
+    - https://fonts.googleapis.com # Google Fonts
+  font-src:
+    - 'data:'
+    - https://fonts.gstatic.com # Google Fonts
+  report-to:
+    - https://o0.ingest.sentry.io/api/0/security/?sentry_key=${SENTRY_PUBLIC_KEY}
+```
 
-<sup id='fn-1'>[1](#fnr-1) Splitting policies into multiple headers is not equivalent as user agents are expected to 
-enforce comma-delimited policies independently (</sup><a href='https://www.w3.org/TR/CSP3/#multiple-policies'><sup>details</sup></a><sup>)</sup>
+
+
+This image can be used in multi-stage builds or CI pipelines to insert CSP headers in server configurations or `meta`
+tag equivalents in HTML. Furthermore, it supports environment variables to allow configuration for different deployment 
+environments.
+
+<sup id='fn-1'>[1](#fnr-1) 
+Splitting policies into multiple headers is not equivalent as user agents are expected to enforce comma-delimited 
+policies independently 
+(</sup><a href='https://www.w3.org/TR/CSP3/#multiple-policies'><sup>details</sup></a><sup>)</sup>
 
 ## Usage
 
@@ -54,31 +84,14 @@ python -m build-csp [options] in[:out] [in[:out] ...]
 - `-n` `--nginx-format`
   > format the output as an nginx `add_header` directive
 
-
 ## Examples
-With a YAML configuration file `csp.yaml`:
-```yaml
-Content-Security-Policy:
-  default-src: 
-    - "'none'"
-  script-src:
-    - "'self'"
-  connect-src:
-    - "'self'"
-    - https://${API_DOMAIN}:${API_PORT}
-  font-src:
-    - "'self'"
-    - https://my-site.com
-  base-uri:
-    - "'self'"
-  report-to:
-    - ${CSP_REPORT_URI}
-```
 
 ### To run the image locally as an executable:
 
 ```shell
-docker run --rm --volume $(pwd):/var/csp/ \
+docker run --rm \
+  --volume $(pwd):/var/csp/ \
+  --env-file ./.env
   rahilp/csp-builder:latest /var/csp/csp.yaml:/var/csp/csp.txt
 ```
 
@@ -89,13 +102,27 @@ Running this command will write the policy to `csp.txt` in the working directory
 
 ```dockerfile
 # Stage 1: Serialize the policy (formatted as an NGINX `add_header` directive)
+
 FROM rahilp/csp-builder:latest AS build-csp
+
+# Define build arguments
+ARG API_SUBDOMAIN
+ARG CHAT_SUBDOMAIN
+ARG WEBAPP_DOMAIN
+ARG SENTRY_PUBLIC_KEY
+
+# Apply build arguments as environment variables
+ENV API_SUBDOMAIN ${API_SUBDOMAIN}
+ENV CHAT_SUBDOMAIN ${CHAT_SUBDOMAIN}
+ENV WEBAPP_DOMAIN ${WEBAPP_DOMAIN}
+ENV SENTRY_PUBLIC_KEY ${SENTRY_PUBLIC_KEY}
 
 COPY csp.yaml /var/csp/
 
 RUN python -m csp-builder --nginx-format /var/csp/csp.yaml:/var/csp/csp.conf
 
 # Stage 2: Configure the NGINX image with the built policy from Stage 0
+
 FROM nginx:latest
 
 COPY config/ /etc/nginx/
