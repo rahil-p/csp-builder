@@ -9,9 +9,10 @@ jobs:
     name: push image to Docker Hub
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: setup QEMU
+        uses: docker/setup-qemu-action@v1
 
-      - name: Set up Docker Buildx
+      - name: setup Docker Buildx
         uses: docker/setup-buildx-action@v1
 
       - name: authenticate
@@ -32,7 +33,6 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v2
         with:
-          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
