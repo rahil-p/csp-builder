@@ -1,12 +1,15 @@
 name: publish to Docker Hub
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
 
 jobs:
-  push_to_registry:
-    name: push image to Docker Hub
+  docker:
+    name: publish to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: setup QEMU
@@ -18,8 +21,8 @@ jobs:
       - name: authenticate
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_ID }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          username: ${{secrets.DOCKER_ID}}
+          password: ${{secrets.DOCKER_TOKEN}}
 
       - name: handle metadata
         id: meta
@@ -34,5 +37,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{steps.meta.outputs.tags}}
+          labels: ${{steps.meta.outputs.labels}}
