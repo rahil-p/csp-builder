@@ -42,8 +42,6 @@ Content-Security-Policy:
     - https://o0.ingest.sentry.io/api/0/security/?sentry_key=${SENTRY_PUBLIC_KEY}
 ```
 
-
-
 This image can be used in multi-stage builds or CI pipelines to insert CSP headers in server configurations or `meta`
 tag equivalents in HTML. Furthermore, it supports environment variables to allow configuration for different deployment 
 environments.
@@ -86,7 +84,7 @@ python -m build-csp [options] in[:out] [in[:out] ...]
 
 ## Examples
 
-### To run the image locally as an executable:
+#### To run the image locally as an executable:
 
 ```shell
 docker run --rm \
@@ -97,8 +95,7 @@ docker run --rm \
 
 Running this command will write the policy to `csp.txt` in the working directory.
 
-
-### To run in a multi-stage Dockerfile for NGINX:
+#### To run in a multi-stage Dockerfile for NGINX:
 
 ```dockerfile
 # Stage 1: Serialize the policy (formatted as an NGINX `add_header` directive)
@@ -111,7 +108,7 @@ ARG CHAT_SUBDOMAIN
 ARG WEBAPP_DOMAIN
 ARG SENTRY_PUBLIC_KEY
 
-# Apply build arguments as environment variables
+# Export build arguments to environment variables
 ENV API_SUBDOMAIN ${API_SUBDOMAIN}
 ENV CHAT_SUBDOMAIN ${CHAT_SUBDOMAIN}
 ENV WEBAPP_DOMAIN ${WEBAPP_DOMAIN}
