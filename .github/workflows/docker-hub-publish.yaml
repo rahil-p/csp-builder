@@ -49,5 +49,5 @@ jobs:
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{secrets.DOCKER_ID}}
-          password: ${{secrets.DOCKER_TOKEN}}
+          password: ${{secrets.DOCKER_PASSWORD}}
           repository: rahilp/csp-builder
