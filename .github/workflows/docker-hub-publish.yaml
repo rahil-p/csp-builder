@@ -6,8 +6,8 @@ on:
       - 'v*'
 
 jobs:
-  docker:
-    name: publish to Docker Hub
+  build:
+    name: Publish to Docker Hub
     runs-on: ubuntu-latest
     steps:
       - name: Setup QEMU
@@ -37,6 +37,13 @@ jobs:
           push: true
           tags: ${{steps.meta.outputs.tags}}
           labels: ${{steps.meta.outputs.labels}}
+
+  update-description:
+    name: Update Docker Hub Repository Description
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
       - name: Update Repository Description
         uses: peter-evans/dockerhub-description@v2
