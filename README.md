@@ -1,14 +1,16 @@
 # csp-builder
 
 [![docker-image][docker-image-badge]][docker-image]
+[![github-workflow][github-workflow-badge]][github-workflow]
 
 A simple Docker executable for parsing Content Security Policies from YAML configuration files, including support for 
 environment variables.
 
 ## Motivation
 
-Content Security Policy is represented by a linefeed <a href='#fn-1'><sup id='fnr-1'>(1)</sup></a>, which can become
-inconvenient to maintain. This is especially the case when several backing services require access from varying deployment environments.
+Content Security Policy is represented by a linefeed <a id='fnr-1' href='#fn-1'><sup>(1)</sup></a>, which can become
+inconvenient to maintain. This is especially the case when several backing services require access from varying 
+deployment environments.
 
 This Docker image provides support for configuring Content Security Policy in YAML.
 
@@ -46,10 +48,12 @@ This image can be used in multi-stage builds or CI pipelines to insert CSP heade
 tag equivalents in HTML. Furthermore, it supports environment variables to allow configuration for different deployment 
 environments.
 
-<sup id='fn-1'>[1](#fnr-1) 
-Splitting policies into multiple headers is not equivalent as user agents are expected to enforce comma-delimited 
-policies independently 
-(</sup><a href='https://www.w3.org/TR/CSP3/#multiple-policies'><sup>details</sup></a><sup>)</sup>
+<a id='fn-1' href='fnr-1'><sup>1</sup></a>
+<sup>
+  Splitting policies into multiple headers is not equivalent as user agents are expected to enforce comma-delimited 
+  policies independently | 
+</sup>
+<a href='https://www.w3.org/TR/CSP3/#multiple-policies'><sup>details</sup></a>
 
 ## Usage
 
@@ -132,7 +136,9 @@ NGINX configs can add the header by reference with:
 include /etc/nginx/partials/csp.conf;
 ```
 
-[docker-image-badge]: https://img.shields.io/docker/v/rahilp/csp-builder?label=docker
+[docker-image-badge]: https://img.shields.io/docker/v/rahilp/csp-builder?logo=docker
+[github-workflow-badge]: https://img.shields.io/github/workflow/status/rahil-p/csp-builder/ci?logo=github
 
 [docker-image]: https://hub.docker.com/r/rahilp/csp-builder/tags
+[github-workflow]: https://github.com/rahil-p/csp-builder/actions
 
