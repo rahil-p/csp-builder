@@ -41,6 +41,6 @@ jobs:
       - name: Update Repository Description
         uses: peter-evans/dockerhub-description@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{secrets.DOCKER_ID}}
+          password: ${{secrets.DOCKER_TOKEN}}
           repository: rahilp/csp-builder
