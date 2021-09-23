@@ -48,7 +48,7 @@ This image can be used in multi-stage builds or CI pipelines to insert CSP heade
 tag equivalents in HTML. Furthermore, it supports environment variables to allow configuration for different deployment 
 environments.
 
-<a id='fn-1' href='fnr-1'><sup>1</sup></a>
+<a id='fn-1' href='fnr-1'><sup>[1]</sup></a>
 <sup>
   Splitting policies into multiple headers is not equivalent as user agents are expected to enforce comma-delimited 
   policies independently | 
