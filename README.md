@@ -116,7 +116,7 @@ COPY csp.yaml /var/csp/
 RUN python -m csp-builder --nginx-format /var/csp/csp.yaml:/var/csp/csp.conf
 
 # ------------------------------------------------------------------------------
-# Stage 2: Configure the NGINX image with the built policy from Stage 0
+# Stage 2: Configure the NGINX image with the built policy from Stage 1
 # ------------------------------------------------------------------------------
 
 FROM nginx:latest
