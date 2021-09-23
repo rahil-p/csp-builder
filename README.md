@@ -16,7 +16,7 @@ This Docker image provides support for configuring Content Security Policy in YA
 
 For example, instead of maintaining CSP in this kind of format:
 ```
-default-src 'none';frame-ancestors 'self';frame-src https://app.third-party.com:8080;connect-src https://qa-api.my-site.com wss://qa-chat.my-site.com:*;script-src 'self' 'report-sample';style-src 'self' https://fonts.googleapis.com;font-src data: https://fonts.gstatic.com;report-to https://o0.ingest.sentry.io/api/0/security/?sentry_key=examplekey
+default-src 'none';frame-ancestors 'self';frame-src https://app.third-party.com;connect-src wss://qa-chat.my-site.com:*;script-src 'self' 'report-sample';style-src 'self' https://fonts.googleapis.com;font-src data: https://fonts.gstatic.com;report-to https://o0.ingest.sentry.io/api/0/security/?sentry_key=examplekey
 ```
 
 ...it can be managed with more structure and readability in YAML like:
@@ -27,19 +27,19 @@ Content-Security-Policy:
   frame-ancestors:
     - 'self'
   frame-src:
-    - https://${WEBAPP_DOMAIN}:8080
+    - ${WEBAPP_HOST}
   connect-src:
-    - https://${API_SUBDOMAIN}.my-site.com
+    # comments!
     - wss://${CHAT_SUBDOMAIN}.my-site.com:*
   script-src:
     - "'self'"
     - "'report-sample'"
   style-src:
     - "'self'"
-    - https://fonts.googleapis.com # Google Fonts
+    - https://fonts.googleapis.com
   font-src:
     - 'data:'
-    - https://fonts.gstatic.com # Google Fonts
+    - https://fonts.gstatic.com
   report-to:
     - https://o0.ingest.sentry.io/api/0/security/?sentry_key=${SENTRY_PUBLIC_KEY}
 ```
@@ -102,27 +102,22 @@ Running this command will write the policy to `csp.txt` in the working directory
 #### To run in a multi-stage Dockerfile for NGINX:
 
 ```dockerfile
+# ------------------------------------------------------------------------------
 # Stage 1: Serialize the policy (formatted as an NGINX `add_header` directive)
+# ------------------------------------------------------------------------------
 
 FROM rahilp/csp-builder:latest AS build-csp
 
-# Define build arguments
-ARG API_SUBDOMAIN
-ARG CHAT_SUBDOMAIN
-ARG WEBAPP_DOMAIN
-ARG SENTRY_PUBLIC_KEY
-
-# Export build arguments to environment variables
-ENV API_SUBDOMAIN ${API_SUBDOMAIN}
-ENV CHAT_SUBDOMAIN ${CHAT_SUBDOMAIN}
-ENV WEBAPP_DOMAIN ${WEBAPP_DOMAIN}
-ENV SENTRY_PUBLIC_KEY ${SENTRY_PUBLIC_KEY}
+# As an alternative, you can pass environment variables via build args
+COPY .env .
 
 COPY csp.yaml /var/csp/
 
 RUN python -m csp-builder --nginx-format /var/csp/csp.yaml:/var/csp/csp.conf
 
+# ------------------------------------------------------------------------------
 # Stage 2: Configure the NGINX image with the built policy from Stage 0
+# ------------------------------------------------------------------------------
 
 FROM nginx:latest
 
